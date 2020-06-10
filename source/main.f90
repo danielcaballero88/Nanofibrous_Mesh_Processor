@@ -2,21 +2,17 @@ program hello
     ! ----------
     use class_archivo
     use class_instruccion
+    use class_configuracion
     ! ----------
     implicit none
-    type(archivo) :: arch
-    type(instruccion) :: instr
+    type(configuracion) :: conf
     integer :: istat
     integer :: i
     ! ----------
 
-    istat = arch%abrir('ConfigurationFile.txt', 'old')
+    call conf%leer('ConfigurationFile.txt')
 
-!    istat = read_from_configfile(instr, arch, 1)
-    istat = instr%leer(arch, 1)
-
-
-    istat = arch%cerrar()
+    i = 2
 
     ! ----------
 end program

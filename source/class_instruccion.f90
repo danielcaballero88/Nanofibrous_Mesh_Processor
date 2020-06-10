@@ -7,9 +7,15 @@ module class_instruccion
     private
     ! ==========
 
+    ! ----------
     type string
+        ! -----
+        ! tipo que uso para hacer con mas robustez arrays de strings
+        ! -----
         character(len=120) :: s
+        ! -----
     end type
+    ! ----------
 
     ! ----------
     type, public :: instruccion
@@ -53,9 +59,54 @@ module class_instruccion
     end type
     ! ----------
 
+    ! ----------
+    type, public :: instrucciones
+        ! -----
+        ! sencillamente una lista de objetos instruccion
+        ! -----
+        integer :: num
+        integer, allocatable :: ilista(:)
+        type(instruccion), allocatable :: lista(:)
+        ! -----
+    contains
+        ! -----
+        procedure :: leer => read_instrucciones_from_configfile
+        ! -----
+    end type
+    ! ----------
+
+    public :: get_str_label
+
     ! ==========
 contains
     ! ==========
+
+    ! ----------
+    function read_instrucciones_from_configfile(this, arch, target_string) result (istat)
+        ! -----
+        implicit none
+        class(instrucciones), intent(inout) :: this
+        type(archivo), intent(in) :: arch
+        character(len=*), intent(in) :: target_string
+        integer :: istat
+        integer :: i
+        character(len=20) :: s
+        ! -----
+
+        s = target_string
+        istat = arch%fsif(target_string, .true.)
+        read(arch%fid, *) this%num
+        allocate( this%ilista(this%num) )
+        read(arch%fid, *) this%ilista
+
+        allocate( this%lista(this%num) )
+        do i=1,this%num
+            istat = this%lista(i)%leer(arch, this%ilista(i))
+        end do
+
+        ! -----
+    end function read_instrucciones_from_configfile
+    ! ----------
 
     ! ----------
     ! HUB

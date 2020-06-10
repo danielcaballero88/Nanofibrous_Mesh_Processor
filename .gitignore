@@ -1,0 +1,10 @@
+# compiled files
+/Debug/*
+/Release/*
+# codeblocks files (.cbp I keep)
+*.depend
+*.layout
+# core file 
+core
+# carpeta temp 
+/temp/

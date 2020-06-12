@@ -13,22 +13,13 @@ subroutine main_intersectar(filename_malla_in, npasadas, periodicidad)
     CHARACTER(LEN=120), intent(in) :: filename_malla_in
     integer, intent(in) :: npasadas
     logical, intent(in) :: periodicidad
-    character(len=120) :: filename_malla_in2, filename_malla_out
+    character(len=120) :: filename_malla_out
     TYPE(MallaCom) :: MC, MC2
     integer :: i
     integer :: iStat1, iStat2
 
-    if (trim(filename_malla_in) == "default") then
-        filename_malla_in2 = "Malla.txt"
-    else
-        filename_malla_in2 = filename_malla_in
-    end if
-
     write(*,*) "Leer malla, intersectar fibras y reescribir:"
-    CALL leer_malla(MC, filename_malla_in2)
-!    if (MC%sidelen > 99.d0) then
-!        write(*,*) "malla con problema"
-!    end if
+    CALL leer_malla(MC, filename_malla_in)
     ! Hago la interseccion muchas veces porque cada vez tengo la limitacion de no cortar al mismo segmento dos veces
     i = 0
     write(*,*) "Intersectando fibras"
@@ -50,38 +41,36 @@ subroutine main_intersectar(filename_malla_in, npasadas, periodicidad)
 
     write(*,*) "Escribiendo malla intersectada"
     filename_malla_out = "_i"
-    call modify_txt_filename(filename_malla_in2, filename_malla_out)
+    call modify_txt_filename(filename_malla_in, filename_malla_out)
     CALL escribir_malla(mc, filename_malla_out)
     write(*,*) "Malla intersectada OK"
 
 end subroutine main_intersectar
 ! ==========================================================================
 
+
 ! ==========================================================================
 subroutine main_simplificar(filename_malla_in, nparamcon, paramcon)
     use class_malla_completa
     use class_mallita
     implicit none
-    CHARACTER(LEN=120), intent(in) :: filename_malla_in
+    CHARACTER(LEN=120), intent(in) :: filename_malla_in ! nombre original de la malla (as deposited)
     integer, intent(in) :: nparamcon
     real(8), intent(in) :: paramcon(nparamcon)
     character(len=120) :: filename_malla_in2, filename_malla_out
     type(MallaCom) :: mc
     type(MallaSim) :: ms
 
-    if (trim(filename_malla_in) == "default") then
-        filename_malla_in2 = "Malla_i.txt"
-    else
-        filename_malla_in2 = "_i"
-        call modify_txt_filename(filename_malla_in, filename_malla_in2)
-    end if
-
-
     write(*,*) "Leer malla intersectada y generar malla simplificada:"
+    ! El archivo de malla que leo debe haber sido intersectado, por eso,
+    ! Le agrego al nombre de malla el identificador de que ya fue intersectada
+    filename_malla_in2 = "_i"
+    call modify_txt_filename(filename_malla_in, filename_malla_in2)
     call leer_malla(mc, filename_malla_in2)
     call Desde_MallaCom(mc, ms, nparamcon, paramcon)
 
     write(*,*) "Escribiendo mallita"
+    ! la malla que escribo va a tener identificador "_i_s"
     filename_malla_out = "_s"
     call modify_txt_filename(filename_malla_in2, filename_malla_out)
     CALL escribir_mallita(ms, filename_malla_out)
@@ -91,7 +80,10 @@ end subroutine main_simplificar
 ! ==========================================================================
 
 ! ==========================================================================
-subroutine main_equilibrar(filename_malla_in, nparcon, parcon, Fmacro, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, str_num_output_opt)
+subroutine main_equilibrar  (filename_malla_in, &
+                            nparcon, parcon, &
+                            Fmacro, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, &
+                            str_num_output_opt)
     ! Calcula el equilibrio elastico de una malla dado un tensor F macroscopico (Fmacro)
     ! ----------
     use class_mallita
@@ -113,13 +105,9 @@ subroutine main_equilibrar(filename_malla_in, nparcon, parcon, Fmacro, num_pasos
     integer :: n
     ! ----------
 
-    if (trim(filename_malla_in) == "default") then
-        filename_malla_in2 = "Malla_i_s.txt"
-    else
-        filename_malla_in2 = "_i_s"
-        call modify_txt_filename(filename_malla_in, filename_malla_in2)
-    end if
-
+    ! La malla que leo debe haber sido intersectada y simplificada
+    filename_malla_in2 = "_i_s" ! por eso busco el archivo con estos identificadores
+    call modify_txt_filename(filename_malla_in, filename_malla_in2)
     write(*,*) "Calculando equilibrio"
     call leer_mallita(ms, filename_malla_in2, nparcon, parcon)
     n = ms%nnods
@@ -142,7 +130,12 @@ end subroutine main_equilibrar
 
 
 ! ==========================================================================
-subroutine main_traccion(filename_malla_in, nparcon, parcon, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, dtime, dotF11, dotF22, F11fin, filename_curva, opcion_save, dF_save)
+subroutine main_traccion(filename_malla_in, &
+                        nparcon, parcon, &
+                        num_pasos, lista_veces, lista_drmags, fzaref, fzatol, &
+                        dtime, dotF11, dotF22, F11fin, &
+                        filename_curva, &
+                        opcion_save, dF_save)
     ! Simula un ensayo de traccion con un esquema explicito
     ! imponiendo tasas de deformacion axial y transversal
     ! ----------

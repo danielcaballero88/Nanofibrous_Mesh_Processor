@@ -180,7 +180,8 @@ contains
                                instr%F11_fin, &
                                aux_string, &
                                instr%opcion_save, &
-                               instr%dF11_save)
+                               instr%num_F11_saves, &
+                               instr%lista_F11_tosave)
             write(6,*) '---'
         end do
 

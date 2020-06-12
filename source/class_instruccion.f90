@@ -47,8 +47,6 @@ module class_instruccion
         real(8) :: dF11_save
         integer :: num_F11_saves
         real(8), allocatable :: lista_F11_tosave(:) ! shape=(num_F11_saves)
-        logical, allocatable :: lista_F11_ifsaved(:) ! shape=(num_F11_saves)
-        logical, allocatable :: completed_F11_saves(:) ! shape=(num_mallas)
         ! variables uniaxial (usa la mayoria de los metodos previos)
         real(8) :: ten22
         ! -----
@@ -385,17 +383,13 @@ contains
         if (this%opcion_save==1) then ! preparo una lista de saves
             this%num_F11_saves = int( (this%F11_fin-1.d0) / this%dF11_save ) + 1
             allocate( this%lista_F11_tosave(this%num_F11_saves) )
-            allocate( this%lista_F11_ifsaved(this%num_F11_saves) )
             do i=1,this%num_F11_saves
                 this%lista_F11_tosave(i) = 1.d0 + dfloat(i-1)*this%dF11_save
-                this%lista_F11_ifsaved(i) = .false.
             end do
-            allocate ( this%completed_F11_saves(this%num_mallas) )
-            this%completed_F11_saves = .false.
         else
             this%num_F11_saves = 0
-            allocate ( this%completed_F11_saves(this%num_mallas) )
-            this%completed_F11_saves = .true.
+            ! no es necesario, y no se si sera peligroso adjudicar con 0
+            allocate( this%lista_F11_tosave(this%num_F11_saves) )
         end if
 
         ! -----

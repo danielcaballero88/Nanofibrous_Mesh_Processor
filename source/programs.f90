@@ -135,7 +135,7 @@ subroutine main_traccion(filename_malla_in, &
                         num_pasos, lista_veces, lista_drmags, fzaref, fzatol, &
                         dtime, dotF11, dotF22, F11fin, &
                         filename_curva, &
-                        opcion_save, dF_save)
+                        opcion_save, nsaves, lista_saves_F)
     ! Simula un ensayo de traccion con un esquema explicito
     ! imponiendo tasas de deformacion axial y transversal
     ! ----------
@@ -156,7 +156,8 @@ subroutine main_traccion(filename_malla_in, &
     real(8), intent(in) :: F11fin
     CHARACTER(LEN=120), intent(in) :: filename_curva
     integer, intent(in) :: opcion_save
-    real(8), intent(in) :: dF_save
+    integer, intent(in) :: nsaves
+    real(8), allocatable, intent(in) :: lista_saves_F(:)
     ! ----------
     character(len=120) :: filename_malla_in2, filename_malla_out, filename_curva2
     real(8) :: F11ini
@@ -164,38 +165,36 @@ subroutine main_traccion(filename_malla_in, &
     real(8) :: time
     real(8) :: Fmacro(2,2)
     type(MallaSim) :: ms
-    integer :: nsaves
-    real(8), allocatable :: lista_saves_F(:)
     logical, allocatable :: lista_saves_if(:)
     logical :: listo_saves
     integer :: isave
     ! ----------
 
     write(*,*) "Empezando Traccion"
+
     ! Preparo la lista de saves si es que hay
     if (opcion_save==1) then
-        nsaves =  int((F11fin-1.0d0) / dF_save) + 1
-        allocate( lista_saves_F(nsaves) )
         allocate( lista_saves_if(nsaves) )
-        do isave=1,nsaves
-            lista_saves_F(isave) = 1. + dfloat(isave - 1)*dF_save
-        end do
         lista_saves_if = .false.
-    end if
-    ! Leo la malla
-    write(*,*) "Leyendo Malla:"
-    if (trim(filename_malla_in) == "default") then
-        filename_malla_in2 = "Malla_i_s.txt"
-        filename_curva2 = "curva_sim.txt"
+        listo_saves = .false.
     else
-        filename_malla_in2 = "_i_s"
-        call modify_txt_filename(filename_malla_in, filename_malla_in2)
-        filename_malla_in2 = trim(filename_malla_in2)
-        filename_curva2 = "_c"
-        call modify_txt_filename(filename_malla_in, filename_curva2)
+        listo_saves = .true. ! no habra saves
     end if
+
+    write(*,*) "Leyendo Malla:"
+
+    ! agrego identificador de malla intersectada y simplificada
+    filename_malla_in2 = "_i_s"
+    call modify_txt_filename(filename_malla_in, filename_malla_in2)
+    ! defino el nombre del archivo de la curva constitutiva
+    ! lo hago agregando la nombre del archivo de la malla un identificador:
+    filename_curva2 = "_c"
+    call modify_txt_filename(filename_malla_in, filename_curva2)
+    ! Leo la malla
     write(*,*) "archivo: ", filename_malla_in2
     call leer_mallita(ms, filename_malla_in2, nparcon, parcon)
+
+
     if (ms%status_deformed) then
         ! Si la malla esta previamente deformada, empiezo a trabajar desde alli
         Fmacro = ms%Fmacro
@@ -216,7 +215,6 @@ subroutine main_traccion(filename_malla_in, &
 
     ! Comienzo esquema temporal
     time = 0.d0
-    listo_saves = .false.
     do while ( Fmacro(1,1) .le. F11fin )
         ! Calculo el equilibrio de la malla para el Fmacro dado en este paso de tiempo
         call calcular_equilibrio(ms, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, Fmacro)
@@ -225,6 +223,7 @@ subroutine main_traccion(filename_malla_in, &
         write(fid_curva,"(8E20.8E4)") Fmacro, ms%Tmacro
         ! Calculo plasticidad y/o rotura de fibras
         call calcular_plasticidad_rotura(ms, dtime)
+        ! ---
         ! Me fijo si guardo la malla o no
         if (.not. listo_saves) then
             if ( dabs( Fmacro(1,1) - lista_saves_F(isave) ) < dotF11*dtime ) then
@@ -235,6 +234,7 @@ subroutine main_traccion(filename_malla_in, &
                 if (isave > nsaves) listo_saves = .true.
             end if
         end if
+        ! ---
         ! Incremento tiempo y deformacion para siguiente paso
         Fmacro(1,1) = Fmacro(1,1) + dotF11*dtime
         Fmacro(2,2) = Fmacro(2,2) + dotF22*dtime
@@ -249,7 +249,12 @@ end subroutine main_traccion
 
 
 ! ==========================================================================
-subroutine main_uniaxial(filename_malla_in, nparcon, parcon, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, dtime, dotF11, T22, F11fin, filename_curva, opcion_save, dF_save)
+subroutine main_uniaxial(filename_malla_in, &
+                        nparcon, parcon, &
+                        num_pasos, lista_veces, lista_drmags, fzaref, fzatol, &
+                        dtime, dotF11, T22, F11fin, &
+                        filename_curva, &
+                        opcion_save, dF_save)
     ! Simula un ensayo de traccion con un esquema explicito
     ! imponiendo tasas de deformacion axial y transversal
     ! ----------

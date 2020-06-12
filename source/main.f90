@@ -14,10 +14,7 @@ program hello
     call conf%leer(nomarch_configfile)
     call conf%imprimir()
 
-    call procesar_instruccion(conf, 1)
-    call procesar_instruccion(conf, 2)
-    call procesar_instruccion(conf, 3)
-    call procesar_instruccion(conf, 4)
+    call procesar_instrucciones(conf)
 
     ! ----------
 end program

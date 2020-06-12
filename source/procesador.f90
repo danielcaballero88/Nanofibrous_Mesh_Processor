@@ -13,6 +13,22 @@ contains
     ! ==========
 
     ! ----------
+    subroutine procesar_instrucciones(conf)
+        ! -----
+        implicit none
+        type(configuracion), intent(in) :: conf
+        integer :: i
+        ! -----
+
+        do i=1,conf%instr%num
+            call procesar_instruccion(conf, i)
+        end do
+
+        ! -----
+    end subroutine procesar_instrucciones
+    ! ----------
+
+    ! ----------
     subroutine procesar_instruccion(conf, i)
         ! -----
         implicit none

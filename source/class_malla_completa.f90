@@ -25,8 +25,13 @@ MODULE class_malla_completa
         ! fibras
         INTEGER :: nfibs
         INTEGER :: lenfibsje
-        INTEGER, ALLOCATABLE :: fibsne(:), fibsie(:), fibsje(:)
-        REAL(8), ALLOCATABLE :: fibsds(:), fibsdls(:), fibsdths(:)
+        INTEGER, ALLOCATABLE :: fibsne(:) ! conectividad rala: numero de segmentos por fibra
+        INTEGER, ALLOCATABLE :: fibsie(:) ! conectividad rala: ie
+        INTEGER, ALLOCATABLE :: fibsje(:) ! conectividad rala: je
+        REAL(8), ALLOCATABLE :: fibsds(:) ! diametros
+        REAL(8), ALLOCATABLE :: fibsdls(:) ! longitud de segmento
+        REAL(8), ALLOCATABLE :: fibsdths(:) ! angulo de desviacion maximo entre segmentos
+        REAL(8), ALLOCATABLE :: fibslocos(:) ! longitud de contorno de la fibra
         ! capas
         INTEGER :: ncaps
         INTEGER :: lencapsje
@@ -67,7 +72,7 @@ SUBROUTINE leer_malla(malla, nomarch)
     INTEGER :: tipo
     REAL(8) :: r(2)
     INTEGER :: seg(2)
-    REAL(8) :: dl, d, dth
+    REAL(8) :: dl, d, dth, loco
     INTEGER :: nfibsegs, lenfibsje
     INTEGER :: ncapfibs, lencapsje
     INTEGER :: ie0, ie1
@@ -107,6 +112,7 @@ SUBROUTINE leer_malla(malla, nomarch)
     ALLOCATE( malla%fibsdls(malla%nfibs) )
     ALLOCATE( malla%fibsds(malla%nfibs) )
     ALLOCATE( malla%fibsdths(malla%nfibs) )
+    ALLOCATE( malla%fibslocos(malla%nfibs) )
     ALLOCATE( malla%fibsne(malla%nfibs) )
     ALLOCATE( malla%fibsie(malla%nfibs + 1) )
     ! Recorro dos veces las fibras
@@ -116,7 +122,7 @@ SUBROUTINE leer_malla(malla, nomarch)
     ! porque cada segmento solo pertenece a una fibra, y el total de fibras contienen a todos los segmentos
     lenfibsje = 0
     DO i=1,malla%nfibs
-        READ(fid,*) j, dl, d, dth, nfibsegs
+        READ(fid,*) j, dl, d, dth, loco, nfibsegs
         malla%fibsne(i) = nfibsegs
         lenfibsje = lenfibsje + nfibsegs
     END DO
@@ -129,11 +135,12 @@ SUBROUTINE leer_malla(malla, nomarch)
         malla%fibsie(i+1) = malla%fibsie(i) + malla%fibsne(i)
         ie0 = malla%fibsie(i)
         ie1 = malla%fibsie(i+1)
-        READ(fid,*) j, dl, d, dth, nfibsegs, malla%fibsje(ie0:ie1-1)
+        READ(fid,*) j, dl, d, dth, loco, nfibsegs, malla%fibsje(ie0:ie1-1)
         malla%fibsje(ie0:ie1-1) = malla%fibsje(ie0:ie1-1) + 1 ! necesario porque vengo de python con base 0
         malla%fibsdls(i) = dl
         malla%fibsds(i) = d
         malla%fibsdths(i) = dth
+        malla%fibslocos(i) = loco
     END DO
     ! ----------
     iStatus = FindStringInFile("*capas", fid, .TRUE.)
@@ -214,8 +221,14 @@ SUBROUTINE escribir_malla(malla, nomarch)
     WRITE(fid,'(A7)') "*Fibras"
     WRITE(fid,'(I12)') malla%nfibs
     DO i=1,malla%nfibs
-        WRITE(formato, '(A18,I0,A4)') "(I12,3E20.8E4,I12,",malla%fibsne(i),"I12)"
-        WRITE(fid,formato) i-1, malla%fibsdls(i), malla%fibsds(i), malla%fibsdths(i), malla%fibsne(i), malla%fibsje(malla%fibsie(i):malla%fibsie(i+1)-1) - 1
+        WRITE(formato, '(A18,I0,A4)') "(I12,4E20.8E4,I12,",malla%fibsne(i),"I12)"
+        WRITE(fid,formato) i-1, &
+                           malla%fibsdls(i), &
+                           malla%fibsds(i), &
+                           malla%fibsdths(i), &
+                           malla%fibslocos(i), &
+                           malla%fibsne(i), &
+                           malla%fibsje(malla%fibsie(i):malla%fibsie(i+1)-1) - 1
     END DO
     ! ----------
     ! Capas
@@ -435,12 +448,14 @@ SUBROUTINE intersectar_fibras(m_in, m_out, label_intercapas, label_periodicidad,
     ALLOCATE( m_out%fibsds(m_out%nfibs) )
     ALLOCATE( m_out%fibsdls(m_out%nfibs) )
     ALLOCATE( m_out%fibsdths(m_out%nfibs) )
+    allocate( m_out%fibslocos(m_out%nfibs) )
     ALLOCATE( m_out%fibsne(m_out%nfibs) )
     ALLOCATE( m_out%fibsie(m_out%nfibs + 1) )
     ALLOCATE( m_out%fibsje(m_out%lenfibsje) )
     m_out%fibsds = m_in%fibsds
     m_out%fibsdls = m_in%fibsdls
     m_out%fibsdths = m_in%fibsdths
+    m_out%fibslocos = m_in%fibslocos
     m_out%fibsie(1) = 1
     ! primero copio la conectividad vieja en la conectividad nueva
     ! teniendo cuidado de donde va cada fibra

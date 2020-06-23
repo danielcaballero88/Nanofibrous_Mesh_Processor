@@ -156,7 +156,7 @@ contains
         type(configuracion), intent(in) :: conf
         integer, intent(in) :: i
         type(instruccion) :: instr
-        integer :: j, k
+        integer :: j
         character(len=120) :: aux_string
         ! -----
 

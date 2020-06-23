@@ -34,7 +34,7 @@ MODULE class_mallita
         REAL(8), ALLOCATABLE :: diams(:)
         ! parametros constitutivos
         INTEGER :: nparam
-        REAL(8), ALLOCATABLE :: param(:) ! por ahora son los mismos para todas las fibras
+        REAL(8), ALLOCATABLE :: param(:) ! los mismos para todas las fibras
         ! informacion de deformacion y tension
         logical :: status_deformed = .false.
         real(8) :: Fmacro(2,2)
@@ -52,13 +52,15 @@ CONTAINS
 
 ! ================================================================================
 ! ================================================================================
-SUBROUTINE Desde_MallaCom(macom, masim, nparcon, parcon)
+SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
+    ! ----------
+    ! Metodo que simplifica una Mallacom para obtener una Mallasim (mallita)
     ! ----------
     IMPLICIT NONE
     TYPE(MallaCom), INTENT(IN) :: macom
     TYPE(MallaSim), INTENT(OUT) :: masim
-    integer, intent(in) :: nparcon
-    real(8), intent(in) :: parcon(nparcon)
+    integer, intent(in) :: nparam
+    real(8), intent(in) :: param(nparam)
     ! ----------
     INTEGER :: j ! contadors
     INTEGER :: f,s,n1,n2 ! indices de fibras, segmentos, nodos
@@ -210,12 +212,12 @@ SUBROUTINE Desde_MallaCom(macom, masim, nparcon, parcon)
     masim%rnods = masim%rnods0
     ! ----------
     ! parametros constitutivos
-    allocate( masim%param(nparcon) )
-    masim%nparam = nparcon
-    masim%param = parcon
-    ! ----------
+    allocate( masim%param(nparam) )
+    masim%nparam = nparam
+    masim%param = param
     ! ----------
     write(*,*) "Malla simplificada lista"
+    ! ----------
 
     ! ----------
 END SUBROUTINE Desde_MallaCom
@@ -225,13 +227,17 @@ END SUBROUTINE Desde_MallaCom
 
 ! ================================================================================
 ! ================================================================================
-SUBROUTINE leer_mallita(masim, nomarch, numparamcon, paramcon)
+SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
+    ! ----------
+
+    ! ----------
     IMPLICIT NONE
+    ! ----------
     CHARACTER(LEN=120), INTENT(IN) :: nomarch
     TYPE(MallaSim), INTENT(OUT) :: masim
-    integer, intent(in) :: numparamcon
-    real(8), intent(in) :: paramcon(numparamcon)
-    !
+    integer, intent(in) :: nparam
+    real(8), intent(in) :: parcon(nparam)
+    ! ----------
     INTEGER :: fid
     integer :: iStatus
     INTEGER :: i,j
@@ -242,6 +248,8 @@ SUBROUTINE leer_mallita(masim, nomarch, numparamcon, paramcon)
     integer :: n0, n1
     real(8) :: L_2
     ! ----------
+
+    ! ----------
     fid = get_file_unit()
     OPEN(UNIT=fid, FILE=TRIM(nomarch), STATUS="OLD")
     ! ----------
@@ -250,14 +258,6 @@ SUBROUTINE leer_mallita(masim, nomarch, numparamcon, paramcon)
     READ(fid,*) masim%sidelen
     READ(fid,*) masim%diamed
     read(fid,*) masim%ncapas
-    if (.false.) then ! Codigo viejo que estoy reemplazando
-        READ(fid,*) masim%nparam
-        allocate( masim%param(masim%nparam) )
-        read(fid,*) masim%param
-    end if
-    masim%nparam = numparamcon
-    allocate( masim%param(masim%nparam) )
-    masim%param = paramcon
     ! ----------
     ! Deformacion (puede no estar)
     iStatus = FindStringInFile("*deformacion", fid, .false.)
@@ -314,8 +314,13 @@ SUBROUTINE leer_mallita(masim, nomarch, numparamcon, paramcon)
     ! ----------
     CLOSE(fid)
     ! ----------
+    ! Parametros constitutivos (vienen de argumentos)
+    masim%nparam = nparam
+    allocate( masim%param(masim%nparam) )
+    masim%param = parcon
+    ! ----------
 
-
+    ! ----------
 END SUBROUTINE leer_mallita
 ! ================================================================================
 ! ================================================================================
@@ -342,15 +347,15 @@ SUBROUTINE escribir_mallita(masim, nomarch)
     WRITE(fid,'(E20.8E4)') masim%sidelen
     WRITE(fid,'(E20.8E4)') masim%diamed
     WRITE(fid,'(I10)') masim%ncapas
-    WRITE(fid,'(I10)') masim%nparam
-    WRITE(formato,'(A1,I0,A8)') "(", masim%nparam, "E20.8E4)"
-    WRITE(fid,formato) masim%param
     ! ----------
     ! Deformacion
     if (masim%status_deformed) then
         write(fid,'(A12)') "*Deformacion"
         WRITE(fid,'(4E20.8E4)') masim%Fmacro
         WRITE(fid,'(4E20.8E4)') masim%Tmacro
+        WRITE(fid,'(I10)') masim%nparam
+        WRITE(formato,'(A1,I0,A8)') "(", masim%nparam, "E20.8E4)"
+        WRITE(fid,formato) masim%param
     end if
     ! ----------
     ! Nodos

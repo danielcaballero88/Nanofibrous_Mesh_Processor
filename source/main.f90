@@ -6,8 +6,6 @@ program hello
     implicit none
     character(len=120) :: nomarch_configfile
     type(configuracion) :: conf
-    integer :: istat
-    integer :: i
     ! ----------
 
     nomarch_configfile = 'ConfigurationFile.txt'

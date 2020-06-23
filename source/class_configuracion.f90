@@ -47,10 +47,18 @@ module class_configuracion
         istatus = this%instr%leer(this%arch, '* Numero de acciones')
 
         ! leer parametros constitutivos
-        istatus = this%arch%fsif('* Parametros Constitutivos', .true.)
-        read(this%arch%fid, *) this%num_parcon
-        allocate( this%parcon(this%num_parcon) )
-        read(this%arch%fid, *) this%parcon
+        istatus = this%arch%fsif('* Parametros Constitutivos', .false.)
+        if (istatus==0) then ! etiqueta encontrada
+            read(this%arch%fid, *) this%num_parcon
+            allocate( this%parcon(this%num_parcon) )
+            read(this%arch%fid, *) this%parcon
+        elseif (istatus<0) then ! end of file
+            write(6,*) 'WARNING, etiqueta no encontrada en ConfigurationFile.txt:'
+            write(6,*) '* Parametros Constitutivos'
+        else !(istatus>0) hay error en la lectura en algun lado
+            write(6,*) 'Error en la lectura de ConfigurationFile.txt (iError < 0)'
+            stop
+        end if
 
         ! cerrar archivo
         istatus = this%arch%cerrar()

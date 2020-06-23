@@ -325,7 +325,7 @@ subroutine main_uniaxial(filename_malla_in, &
         fid_curva = get_file_unit()
         open(unit=fid_curva, file=trim(filename_curva), status="old", position="append", action="write")
     else
-        ! Si la malla esta virge, empiezo desde deformacion nula
+        ! Si la malla esta virgen, empiezo desde deformacion nula
         Fmacro = reshape(source=[1.d0, 0.d0, 0.d0, 1.d0], shape=shape(Fmacro))
         isave = 1
         ! Abro un archivo nuevo para escribir la curva constitutiva

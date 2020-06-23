@@ -71,7 +71,6 @@ SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
     integer, allocatable :: oldnods(:) ! array para saber como se conectan los nodos de macom y de masim
     real(8) :: r1(2), r2(2), dr(2), loco0_s, loco0, lete0
     logical :: cond
-    real(8) :: L_2
     ! ----------
 
     ! ----------
@@ -204,9 +203,6 @@ SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
     ! ya tengo los nodos (tipos y coordenadas), ahora hago las masks
     masim%mf = masim%tipos == 1
     masim%mi = masim%tipos == 2
-    ! Desplazo las coordenadas para dejar el cero en el medio del rve
-    L_2 = 0.5d0 * masim%sidelen
-    masim%rnods0 = masim%rnods0 - L_2
     ! y copio rnods0 a rnods
     allocate( masim%rnods(2,nnods) )
     masim%rnods = masim%rnods0
@@ -246,7 +242,6 @@ SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
     real(8) :: diam, lete0, lamr, lamp
     logical :: broken
     integer :: n0, n1
-    real(8) :: L_2
     ! ----------
 
     ! ----------
@@ -279,18 +274,6 @@ SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
         masim%rnods(:,i) = r
         masim%tipos(i) = tipo
     END DO
-    ! Cambio coordenadas para tener el cero en el centro del RVE
-    ! OJO por ahora si hay distorsion (F12 o F21) esto no anda tan facil
-    L_2 = 0.5d0 * masim%sidelen
-    masim%rnods0 = masim%rnods0 - L_2
-    if (masim%status_deformed) then
-        L_2 = 0.5d0 * masim%sidelen * masim%Fmacro(1,1)
-        masim%rnods(1,:) = masim%rnods(1,:) - L_2
-        L_2 = 0.5d0 * masim%sidelen * masim%Fmacro(2,2)
-        masim%rnods(2,:) = masim%rnods(2,:) - L_2
-    else
-        masim%rnods = masim%rnods0
-    end if
     ! ----------
     ! Fibras
     iStatus = FindStringInFile("*fibras", fid, .TRUE.)

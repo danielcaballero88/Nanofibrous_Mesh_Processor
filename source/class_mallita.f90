@@ -320,7 +320,6 @@ subroutine escribir_mallita(masim, nomarch)
     integer :: fid
     integer :: i
     character(len=120) :: formato
-    real(8) :: L_2, r0(2,masim%nnods), r1(2,masim%nnods)
     ! ----------
     fid = get_file_unit()
     open(unit=fid, file=trim(nomarch), status="REPLACE")
@@ -345,18 +344,7 @@ subroutine escribir_mallita(masim, nomarch)
     write(fid,'(A12)') "*Coordenadas"
     write(fid,'(I12)') masim%nnods
     do i=1,masim%nnods
-        ! Tengo que escribir las coordenadas con el cero en el vertice inferior izquierdo
-        L_2 = 0.5d0 * masim%sidelen
-        r0 = masim%rnods0 + L_2
-        if (masim%status_deformed) then
-            L_2 = 0.5d0 * masim%sidelen * masim%Fmacro(1,1)
-            r1(1,:) = masim%rnods(1,:) + L_2
-            L_2 = 0.5d0 * masim%sidelen * masim%Fmacro(2,2)
-            r1(2,:) = masim%rnods(2,:) + L_2
-        else
-            r1 = r0
-        end if
-        write(fid, '(I12,I2,4E20.8E4)') i-1, masim%tipos(i), r0(:,i), r1(:,i)
+        write(fid, '(I12,I2,4E20.8E4)') i-1, masim%tipos(i), masim%rnods0(:,i), masim%rnods(:,i)
     end do
     ! ----------
     ! Fibras

@@ -1,9 +1,9 @@
 ! ==============================================================================
-MODULE class_mallita
+module class_mallita
 ! ==============================================================================
-    USE Aux
-    USE class_malla_completa, ONLY : MallaCom
-    IMPLICIT NONE
+    use Aux
+    use class_malla_completa, only : MallaCom
+    implicit none
 
     real(8), parameter :: delta = 1.d-4
     real(8), parameter :: delta21 = 1.d0 / (2.d0 * delta)
@@ -14,57 +14,57 @@ MODULE class_mallita
     !PUBLIC :: MallaCom
     !PUBLIC :: leer_malla
 
-    TYPE MallaSim
+    type MallaSim
         ! diemensiones generales
-        REAL(8) :: sidelen
+        real(8) :: sidelen
         real(8) :: diamed
         integer :: ncapas
         ! nodos
-        INTEGER :: nnods
-        INTEGER, ALLOCATABLE :: tipos(:)
-        REAL(8), ALLOCATABLE :: rnods0(:,:), rnods(:,:)
-        LOGICAL, ALLOCATABLE :: mf(:), mi(:)
+        integer :: nnods
+        integer, allocatable :: tipos(:)
+        real(8), allocatable :: rnods0(:,:), rnods(:,:)
+        logical, allocatable :: mf(:), mi(:)
         ! fibras
-        INTEGER :: nfibs
-        INTEGER, ALLOCATABLE :: fibs(:,:)
-        REAL(8), ALLOCATABLE :: letes0(:)
-        REAL(8), ALLOCATABLE :: lamsr(:)
+        integer :: nfibs
+        integer, allocatable :: fibs(:,:)
+        real(8), allocatable :: letes0(:)
+        real(8), allocatable :: lamsr(:)
         real(8), allocatable :: lamps(:)
         logical, allocatable :: brokens(:)
-        REAL(8), ALLOCATABLE :: diams(:)
+        real(8), allocatable :: diams(:)
         ! parametros constitutivos
-        INTEGER :: nparam
-        REAL(8), ALLOCATABLE :: param(:) ! los mismos para todas las fibras
+        integer :: nparam
+        real(8), allocatable :: param(:) ! los mismos para todas las fibras
         ! informacion de deformacion y tension
         logical :: status_deformed = .false.
         real(8) :: Fmacro(2,2)
         real(8), allocatable :: lams(:)
         real(8), allocatable :: tens(:)
         real(8) :: Tmacro(2,2)
-    CONTAINS
+    contains
         !
-    END TYPE MallaSim
+    end type MallaSim
 
 ! ==============================================================================
-CONTAINS
+contains
 ! ==============================================================================
 
 
 ! ================================================================================
 ! ================================================================================
-SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
+subroutine Desde_MallaCom(macom, masim, nparam, param)
     ! ----------
     ! Metodo que simplifica una Mallacom para obtener una Mallasim (mallita)
     ! ----------
-    IMPLICIT NONE
-    TYPE(MallaCom), INTENT(IN) :: macom
-    TYPE(MallaSim), INTENT(OUT) :: masim
+    implicit none
+    type(MallaCom), intent(in) :: macom
+    type(MallaSim), intent(out) :: masim
     integer, intent(in) :: nparam
     real(8), intent(in) :: param(nparam)
     ! ----------
-    INTEGER :: j ! contadors
-    INTEGER :: f,s,n1,n2 ! indices de fibras, segmentos, nodos
-    INTEGER :: nins_f ! para contar el numero de intersecciones por fibra
+    integer :: j ! contadors
+    integer :: f,s,n1,n2 ! indices de fibras, segmentos, nodos
+    integer :: nins_f ! para contar el numero de intersecciones por fibra
     integer :: nfibs ! numero de fibras en la malla simplificada
     integer :: nnods ! numero de nodos en la malla simplificada
     integer :: ifib, inod
@@ -94,7 +94,7 @@ SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
             s = macom%fibsje(macom%fibsie(f)-1+j)
             n1 = macom%segs(1,s)
             n2 = macom%segs(2,s)
-            if (macom%tipos(n2) == 2) THEN
+            if (macom%tipos(n2) == 2) then
                 nins_f = nins_f + 1
                 ! chequeo si ya esta considerado o aun no
                 if (oldnods(n2)==0) then
@@ -166,7 +166,7 @@ SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
             end if
             loco0 = loco0 + loco0_s
             ! me fijo si llegue al final de la fibra de masim (si encuentro una interseccion o una frontera)
-            if ((macom%tipos(n2) == 2).or.(macom%tipos(n2)==1)) THEN
+            if ((macom%tipos(n2) == 2).or.(macom%tipos(n2)==1)) then
                 ! me tengo que fijar si este nodo que encontre ya lo tengo presente en oldnods
                 if (oldnods(n2)==0) then
                     ! si no esta presente tengo que agregarlo a los nodos de masim
@@ -216,27 +216,27 @@ SUBROUTINE Desde_MallaCom(macom, masim, nparam, param)
     ! ----------
 
     ! ----------
-END SUBROUTINE Desde_MallaCom
+end subroutine Desde_MallaCom
 ! ================================================================================
 ! ================================================================================
 
 
 ! ================================================================================
 ! ================================================================================
-SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
+subroutine leer_mallita(masim, nomarch, nparam, parcon)
     ! ----------
 
     ! ----------
-    IMPLICIT NONE
+    implicit none
     ! ----------
-    CHARACTER(LEN=120), INTENT(IN) :: nomarch
-    TYPE(MallaSim), INTENT(OUT) :: masim
+    character(len=120), intent(in) :: nomarch
+    type(MallaSim), intent(out) :: masim
     integer, intent(in) :: nparam
     real(8), intent(in) :: parcon(nparam)
     ! ----------
-    INTEGER :: fid
+    integer :: fid
     integer :: iStatus
-    INTEGER :: i,j
+    integer :: i,j
     integer :: tipo
     real(8) :: r0(2), r(2)
     real(8) :: diam, lete0, lamr, lamp
@@ -246,12 +246,12 @@ SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
 
     ! ----------
     fid = get_file_unit()
-    OPEN(UNIT=fid, FILE=TRIM(nomarch), STATUS="OLD")
+    open(unit=fid, file=trim(nomarch), status="OLD")
     ! ----------
     ! Parametros
     iStatus = FindStringInFile("*parametros", fid, .TRUE.)
-    READ(fid,*) masim%sidelen
-    READ(fid,*) masim%diamed
+    read(fid,*) masim%sidelen
+    read(fid,*) masim%diamed
     read(fid,*) masim%ncapas
     ! ----------
     ! Deformacion (puede no estar)
@@ -264,28 +264,28 @@ SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
     ! ----------
     ! Nodos
     iStatus = FindStringInFile("*coordenadas", fid, .TRUE.)
-    READ(fid,*) masim%nnods
-    ALLOCATE( masim%rnods0(2,masim%nnods) )
+    read(fid,*) masim%nnods
+    allocate( masim%rnods0(2,masim%nnods) )
     allocate( masim%rnods(2,masim%nnods) )
-    ALLOCATE( masim%tipos(masim%nnods) )
-    DO i=1,masim%nnods
-        READ(fid,*) j, tipo, r0, r
+    allocate( masim%tipos(masim%nnods) )
+    do i=1,masim%nnods
+        read(fid,*) j, tipo, r0, r
         masim%rnods0(:,i) = r0
         masim%rnods(:,i) = r
         masim%tipos(i) = tipo
-    END DO
+    end do
     ! ----------
     ! Fibras
     iStatus = FindStringInFile("*fibras", fid, .TRUE.)
-    READ(fid,*) masim%nfibs
+    read(fid,*) masim%nfibs
     allocate( masim%fibs(2,masim%nfibs) )
     allocate( masim%diams(masim%nfibs) )
     allocate( masim%letes0(masim%nfibs) )
     allocate( masim%lamsr(masim%nfibs) )
     allocate( masim%lamps(masim%nfibs) )
     allocate( masim%brokens(masim%nfibs) )
-    DO i=1,masim%nfibs
-        READ(fid,*) j, diam, lete0, lamr, lamp, broken, n0, n1
+    do i=1,masim%nfibs
+        read(fid,*) j, diam, lete0, lamr, lamp, broken, n0, n1
         masim%diams(i) = diam
         masim%letes0(i) = lete0
         masim%lamsr(i) = lamr
@@ -293,9 +293,9 @@ SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
         masim%brokens(i) = broken
         masim%fibs(1,i) = n0+1 !+1 porque vengo de python que tiene base 0
         masim%fibs(2,i) = n1+1
-    END DO
+    end do
     ! ----------
-    CLOSE(fid)
+    close(fid)
     ! ----------
     ! Parametros constitutivos (vienen de argumentos)
     masim%nparam = nparam
@@ -304,7 +304,7 @@ SUBROUTINE leer_mallita(masim, nomarch, nparam, parcon)
     ! ----------
 
     ! ----------
-END SUBROUTINE leer_mallita
+end subroutine leer_mallita
 ! ================================================================================
 ! ================================================================================
 
@@ -312,39 +312,39 @@ END SUBROUTINE leer_mallita
 
 ! ================================================================================
 ! ================================================================================
-SUBROUTINE escribir_mallita(masim, nomarch)
-    IMPLICIT NONE
-    CHARACTER(LEN=120), INTENT(IN) :: nomarch
-    TYPE(MallaSim), INTENT(IN) :: masim
+subroutine escribir_mallita(masim, nomarch)
+    implicit none
+    character(len=120), intent(in) :: nomarch
+    type(MallaSim), intent(in) :: masim
     !
-    INTEGER :: fid
-    INTEGER :: i
-    CHARACTER(LEN=120) :: formato
+    integer :: fid
+    integer :: i
+    character(len=120) :: formato
     real(8) :: L_2, r0(2,masim%nnods), r1(2,masim%nnods)
     ! ----------
     fid = get_file_unit()
-    OPEN(UNIT=fid, FILE=TRIM(nomarch), STATUS="REPLACE")
+    open(unit=fid, file=trim(nomarch), status="REPLACE")
     ! ----------
     ! Parametros
-    WRITE(fid,'(A11)') "*Parametros"
-    WRITE(fid,'(E20.8E4)') masim%sidelen
-    WRITE(fid,'(E20.8E4)') masim%diamed
-    WRITE(fid,'(I10)') masim%ncapas
+    write(fid,'(A11)') "*Parametros"
+    write(fid,'(E20.8E4)') masim%sidelen
+    write(fid,'(E20.8E4)') masim%diamed
+    write(fid,'(I10)') masim%ncapas
     ! ----------
     ! Deformacion
     if (masim%status_deformed) then
         write(fid,'(A12)') "*Deformacion"
-        WRITE(fid,'(4E20.8E4)') masim%Fmacro
-        WRITE(fid,'(4E20.8E4)') masim%Tmacro
-        WRITE(fid,'(I10)') masim%nparam
-        WRITE(formato,'(A1,I0,A8)') "(", masim%nparam, "E20.8E4)"
-        WRITE(fid,formato) masim%param
+        write(fid,'(4E20.8E4)') masim%Fmacro
+        write(fid,'(4E20.8E4)') masim%Tmacro
+        write(fid,'(I10)') masim%nparam
+        write(formato,'(A1,I0,A8)') "(", masim%nparam, "E20.8E4)"
+        write(fid,formato) masim%param
     end if
     ! ----------
     ! Nodos
-    WRITE(fid,'(A12)') "*Coordenadas"
-    WRITE(fid,'(I12)') masim%nnods
-    DO i=1,masim%nnods
+    write(fid,'(A12)') "*Coordenadas"
+    write(fid,'(I12)') masim%nnods
+    do i=1,masim%nnods
         ! Tengo que escribir las coordenadas con el cero en el vertice inferior izquierdo
         L_2 = 0.5d0 * masim%sidelen
         r0 = masim%rnods0 + L_2
@@ -356,21 +356,21 @@ SUBROUTINE escribir_mallita(masim, nomarch)
         else
             r1 = r0
         end if
-        WRITE(fid, '(I12,I2,4E20.8E4)') i-1, masim%tipos(i), r0(:,i), r1(:,i)
-    END DO
+        write(fid, '(I12,I2,4E20.8E4)') i-1, masim%tipos(i), r0(:,i), r1(:,i)
+    end do
     ! ----------
     ! Fibras
-    WRITE(fid,'(A7)') "*Fibras"
-    WRITE(fid, '(I12)') masim%nfibs
-    DO i=1,masim%nfibs
-        WRITE(fid,'(I12, 4E20.8E4, L20 ,2I12)') i-1, masim%diams(i), masim%letes0(i), masim%lamsr(i), masim%lamps(i), masim%brokens(i), masim%fibs(:,i) - 1
-    END DO
+    write(fid,'(A7)') "*Fibras"
+    write(fid, '(I12)') masim%nfibs
+    do i=1,masim%nfibs
+        write(fid,'(I12, 4E20.8E4, L20 ,2I12)') i-1, masim%diams(i), masim%letes0(i), masim%lamsr(i), masim%lamps(i), masim%brokens(i), masim%fibs(:,i) - 1
+    end do
     ! ----------
-    CLOSE(fid)
+    close(fid)
     ! ----------
 
 
-END SUBROUTINE escribir_mallita
+end subroutine escribir_mallita
 ! ================================================================================
 ! ================================================================================
 
@@ -1000,5 +1000,5 @@ end subroutine homogeneizacion
 
 
 ! ==============================================================================
-END MODULE class_mallita
+end module class_mallita
 ! ==============================================================================

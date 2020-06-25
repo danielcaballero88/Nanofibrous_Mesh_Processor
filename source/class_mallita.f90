@@ -260,6 +260,10 @@ subroutine leer_mallita(masim, nomarch, nparam, parcon)
         masim%status_deformed = .true.
         read(fid,*) masim%Fmacro
         read(fid,*) masim%Tmacro
+    else
+        masim%status_deformed = .false.
+        masim%Fmacro = reshape([1.d0, 0.d0, 0.d0, 1.d0], shape(masim%Fmacro))
+        masim%Tmacro = reshape([0.d0, 0.d0, 0.d0, 0.d0], shape(masim%Tmacro))
     end if
     ! ----------
     ! Nodos
@@ -713,6 +717,7 @@ subroutine desplazar_nodos_malla(masim, nveces, drmag, fza_ref, fza_tol, r1, bal
     balanced = .false.
     do vez=1,nveces
         call calcular_fuerzas(masim, r1, fzas_fibs, fzas_nods)
+        ! TODO (dancab#1#06/25/2020): agregar aca fuerza de rechazo para que los nodos se mantenga dentro del rve
         do n=1,masim%nnods
             if (masim%tipos(n) == 1) then
                 ! nodo de frontera = nodo de Dirichlet

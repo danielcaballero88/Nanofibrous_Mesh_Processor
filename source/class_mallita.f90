@@ -596,7 +596,7 @@ subroutine calcular_tension_fibra(masim, f, dr_f, tension, fuerzav)
         if (broken) then
             tension = 0.d0
         elseif ( lam <= lamrp ) then
-            tension = Eb*(lam/lamp - 1.0d0) * diam
+            tension = Eb*(lam/lamp - 1.0d0)
         else
             tensionr = Eb * (lamrp - 1.0d0)
             tension = tensionr + Et * (lam/lamrp - 1.0d0)

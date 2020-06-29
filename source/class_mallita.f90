@@ -744,6 +744,7 @@ subroutine desplazar_nodos_malla(masim, nveces, drmag, fza_ref, fza_tol, r1, bal
         end if
     end do
     if ( .not. all(balanced) ) then
+        write(*,*) "fracbal: ", dfloat(count(balanced)) / dfloat(masim%nnods)
         write(*,*) "maxres: ", maxval( fzas_nods_mags )
     end if
 
@@ -906,16 +907,16 @@ subroutine calcular_plasticidad_rotura(masim, dt)
         brokens(f) = broken_f
         dotlamps(f) = dotlamp_f
         lamp_f = lamp_f + dotlamp_f*dt
-        if ( (lam_f>1.d0) .and. (lamp_f > lam_f) ) then
-            !print *, "lamp_f>lam_f en fibra: ", f, lam_f, lamp_f
-            if (lamp_f > elonlimit) then
-                print *, "Tac!", lam_f, lamp_f
-                !call escribir_mallita(masim, "malla_con_error.txt"//repeat(" ", 120))
-                brokens(f) = .true.
-                dotlamps(f) = 0.d0 !
-                lamp_f = masim%lamps(f) ! no plastifico, porque rompi
-            end if
-        end if
+!        if ( (lam_f>1.d0) .and. (lamp_f > lam_f) ) then
+!            !print *, "lamp_f>lam_f en fibra: ", f, lam_f, lamp_f
+!            if (lamp_f > elonlimit) then
+!                print *, "Tac!", lam_f, lamp_f
+!                !call escribir_mallita(masim, "malla_con_error.txt"//repeat(" ", 120))
+!                brokens(f) = .true.
+!                dotlamps(f) = 0.d0 !
+!                lamp_f = masim%lamps(f) ! no plastifico, porque rompi
+!            end if
+!        end if
         ! Actualizo informacion en la propia malla
         masim%brokens(f) = broken_f
         masim%lamps(f) = lamp_f

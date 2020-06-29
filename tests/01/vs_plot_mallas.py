@@ -4,6 +4,7 @@ import VirtualSpinning as vs
 from pathlib import Path
 from matplotlib import pyplot as plt
 
+
 def main():
     # Leer malla inicial
     archivo = Path(__file__).parent / 'malla.txt'
@@ -36,6 +37,7 @@ def main():
     fig.savefig('malla_i_s.png')
 
     plt.show()
+
 
 if __name__ == '__main__':
     main()

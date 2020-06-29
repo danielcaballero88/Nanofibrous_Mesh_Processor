@@ -20,7 +20,7 @@
 			</Target>
 			<Target title="Release">
 				<Option output="Release/Nanofibrous_Mesh_Processor" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="temp/" />
+				<Option working_dir="/home/dancab/git/Nanofibrous_Mesh_Processor/tests/01" />
 				<Option object_output="Release/" />
 				<Option type="1" />
 				<Option compiler="gfortran" />

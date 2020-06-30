@@ -157,7 +157,7 @@ subroutine main_traccion(filename_malla_in, &
     CHARACTER(LEN=120), intent(in) :: filename_curva
     integer, intent(in) :: opcion_save
     integer, intent(in) :: nsaves
-    real(8), allocatable, intent(in) :: lista_saves_F(:)
+    real(8), intent(in) :: lista_saves_F(nsaves)
     ! ----------
     character(len=120) :: filename_malla_in2, filename_malla_out, filename_curva2
     real(8) :: F11ini
@@ -205,7 +205,7 @@ subroutine main_traccion(filename_malla_in, &
         fid_curva = get_file_unit()
         open(unit=fid_curva, file=trim(filename_curva2), status="old", position="append", action="write")
     else
-        ! Si la malla esta virge, empiezo desde deformacion nula
+        ! Si la malla esta virgen, empiezo desde deformacion nula
         Fmacro = reshape(source=[1.d0, 0.d0, 0.d0, 1.d0], shape=shape(Fmacro))
         isave = 1
         ! Abro un archivo nuevo para escribir la curva constitutiva
@@ -227,7 +227,7 @@ subroutine main_traccion(filename_malla_in, &
         ! Me fijo si guardo la malla o no
         if (.not. listo_saves) then
             if ( dabs( Fmacro(1,1) - lista_saves_F(isave) ) < dotF11*dtime ) then
-                write(filename_malla_out,"(A6, I4.4)") "_save_", isave
+                write(filename_malla_out,"(A6, I4.4)") "_trac_", isave
                 call modify_txt_filename(filename_malla_in2, filename_malla_out)
                 call escribir_mallita(ms, filename_malla_out)
                 isave = isave + 1
@@ -254,7 +254,7 @@ subroutine main_uniaxial(filename_malla_in, &
                         num_pasos, lista_veces, lista_drmags, fzaref, fzatol, &
                         dtime, dotF11, T22, F11fin, &
                         filename_curva, &
-                        opcion_save, dF_save)
+                        opcion_save, nsaves, lista_saves_F)
     ! Simula un ensayo de traccion con un esquema explicito
     ! imponiendo tasas de deformacion axial y transversal
     ! ----------
@@ -275,46 +275,46 @@ subroutine main_uniaxial(filename_malla_in, &
     real(8), intent(in) :: F11fin
     CHARACTER(LEN=120), intent(in) :: filename_curva
     integer, intent(in) :: opcion_save
-    real(8), intent(in) :: dF_save
+    integer, intent(in) :: nsaves
+    real(8), intent(in) :: lista_saves_F(nsaves)
     ! ----------
-    character(len=120) :: filename_malla_in2, filename_malla_out
+    character(len=120) :: filename_malla_in2, filename_malla_out, filename_curva2
     real(8) :: F11ini
     integer :: fid_curva
     real(8) :: time
     real(8) :: Fmacro(2,2)
     type(MallaSim) :: ms
-    integer :: nsaves
-    real(8), allocatable :: lista_saves_F(:)
     logical, allocatable :: lista_saves_if(:)
     logical :: listo_saves = .false.
     integer :: isave
     ! ----------
     integer :: k, maxk=100
-    real(8) :: dF22 = 0.001d0
+    real(8) :: dF22 = 0.01d0
     ! ----------
 
     write(*,*) "Empezando Uniaxial"
+
     ! Preparo la lista de saves si es que hay
     if (opcion_save==1) then
-        nsaves =  int((F11fin-1.0d0) / dF_save) + 1
-        allocate( lista_saves_F(nsaves) )
         allocate( lista_saves_if(nsaves) )
-        do isave=1,nsaves
-            lista_saves_F(isave) = 1. + dfloat(isave - 1)*dF_save
-        end do
         lista_saves_if = .false.
-    end if
-    ! Leo la malla
-    write(*,*) "Leyendo Malla:"
-    if (trim(filename_malla_in) == "default") then
-        filename_malla_in2 = "Malla_i_s.txt"
+        listo_saves = .false.
     else
-!        filename_malla_in2 = "_i_s"
-!        call modify_txt_filename(filename_malla_in, filename_malla_in2)
-        filename_malla_in2 = trim(filename_malla_in)
+        listo_saves = .true. ! no habra saves
     end if
+
+    write(*,*) "Leyendo Malla:"
+    ! Agrego identificador de malla intersectada y simplificada
+    filename_malla_in2 = "_i_s"
+    call modify_txt_filename(filename_malla_in, filename_malla_in2)
+    ! Defino el nombre del archivo de la curva constitutiva
+    ! (lo hago agregando la nombre del archivo de la malla un identificador)
+    filename_curva2 = "_c"
+    call modify_txt_filename(filename_malla_in, filename_curva2)
+    ! Leo la malla
     write(*,*) "archivo: ", filename_malla_in2
     call leer_mallita(ms, filename_malla_in2, nparcon, parcon)
+
     if (ms%status_deformed) then
         ! Si la malla esta previamente deformada, empiezo a trabajar desde alli
         Fmacro = ms%Fmacro
@@ -323,14 +323,14 @@ subroutine main_uniaxial(filename_malla_in, &
         isave = count(lista_saves_if) + 1
         ! Abro un archivo viejo para continuar la curva constitutiva
         fid_curva = get_file_unit()
-        open(unit=fid_curva, file=trim(filename_curva), status="old", position="append", action="write")
+        open(unit=fid_curva, file=trim(filename_curva2), status="old", position="append", action="write")
     else
         ! Si la malla esta virgen, empiezo desde deformacion nula
         Fmacro = reshape(source=[1.d0, 0.d0, 0.d0, 1.d0], shape=shape(Fmacro))
         isave = 1
         ! Abro un archivo nuevo para escribir la curva constitutiva
         fid_curva = get_file_unit()
-        open(unit=fid_curva, file=trim(filename_curva), status="replace")
+        open(unit=fid_curva, file=trim(filename_curva2), status="replace")
     end if
 
     ! Comienzo esquema temporal
@@ -341,9 +341,9 @@ subroutine main_uniaxial(filename_malla_in, &
             call calcular_equilibrio(ms, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, Fmacro)
             if (ms%Tmacro(2,2)>T22) then
                 Fmacro(2,2) = Fmacro(2,2) - dF22
-            else if (ms%Tmacro(2,2) < T22) then
-                Fmacro(2,2) = Fmacro(2,2) + dF22
-                exit
+!            else if (ms%Tmacro(2,2) < T22) then
+!                Fmacro(2,2) = Fmacro(2,2) + dF22
+!                exit
             else
                 exit
             end if
@@ -356,7 +356,7 @@ subroutine main_uniaxial(filename_malla_in, &
         ! Me fijo si guardo la malla o no
         if (.not. listo_saves) then
             if ( dabs( Fmacro(1,1) - lista_saves_F(isave) ) < dotF11*dtime ) then
-                write(filename_malla_out,"(A7, I4.4)") "_uniax_", isave
+                write(filename_malla_out,"(A6, I4.4)") "_uaxi_", isave
                 call modify_txt_filename(filename_malla_in2, filename_malla_out)
                 call escribir_mallita(ms, filename_malla_out)
                 isave = isave + 1

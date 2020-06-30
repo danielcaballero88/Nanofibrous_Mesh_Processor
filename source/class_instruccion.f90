@@ -48,7 +48,7 @@ module class_instruccion
         integer :: num_F11_saves
         real(8), allocatable :: lista_F11_tosave(:) ! shape=(num_F11_saves)
         ! variables uniaxial (usa la mayoria de los metodos previos)
-        real(8) :: ten22
+        real(8) :: ten22 ! tension transversal para metodo uniaxial (ten22=0 es uniaxial posta)
         ! -----
     contains
         ! -----

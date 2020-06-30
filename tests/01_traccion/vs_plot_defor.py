@@ -4,12 +4,13 @@ import VirtualSpinning as vs
 from pathlib import Path
 from matplotlib import pyplot as plt
 
-LIMITES = {'bottom': -65, 'right': 65, 'top':65, 'left': -65}
+LIM = 70
+LIMITES = {'bottom': -LIM, 'right': LIM, 'top':LIM, 'left': -LIM}
 
 def main():
     for im in range(1,17,1):
         # Leer
-        archname = f'malla_i_s_save_{im:04d}.txt'
+        archname = f'malla_i_s_trac_{im:04d}.txt'
         archivo = Path(__file__).parent / archname
         ms = vs.Mallasim.leer_de_archivo(archivo)
         # Preparo para graficar por variable tension (aproximada) 
@@ -25,7 +26,8 @@ def main():
                         plot_afin=True,
                         plot_enrul=True, 
                         plot_broken=True)
-    plt.show()
+        fig.savefig(archname[:-4] + '.png')
+    # plt.show()
 
 
 if __name__ == '__main__':

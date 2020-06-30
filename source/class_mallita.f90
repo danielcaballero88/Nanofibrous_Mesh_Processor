@@ -739,13 +739,13 @@ subroutine desplazar_nodos_malla(masim, nveces, drmag, fza_ref, fza_tol, r1, bal
             end if
         end do
         if ( all(balanced) ) then
-            write(*,*) "balanced!", vez
+            write(*,*) "balanced!", vez, maxval(fzas_nods_mags)
             exit
         end if
     end do
     if ( .not. all(balanced) ) then
         write(*,*) "fracbal: ", dfloat(count(balanced)) / dfloat(masim%nnods)
-        write(*,*) "maxres: ", maxval( fzas_nods_mags )
+        write(*,*) "maxres: ", maxval(fzas_nods_mags)
     end if
 
     ! ----------

@@ -45,7 +45,8 @@ contains
                 call procesar_equilibrar(conf, i)
             case ("Traccion")
                 call procesar_traccion(conf, i)
-!            case ("Uniaxial")
+            case ("Uniaxial")
+                call procesar_uniaxial(conf, i)
             case default
                 write(*,*) "Error, tipo de instruccion desconocido"
                 stop
@@ -150,7 +151,7 @@ contains
     ! ----------
     subroutine procesar_traccion(conf, i)
         ! -----
-        ! procesar metodo equilibrar de 1 o varias mallas acorde a instr
+        ! procesar metodo traccion de 1 o varias mallas acorde a instr
         ! -----
         implicit none
         type(configuracion), intent(in) :: conf
@@ -187,6 +188,49 @@ contains
 
         ! -----
     end subroutine procesar_traccion
+    ! ----------
+
+
+    ! ----------
+    subroutine procesar_uniaxial(conf, i)
+        ! -----
+        ! procesar metodo uniaxial de 1 o varias mallas acorde a instr
+        ! -----
+        implicit none
+        type(configuracion), intent(in) :: conf
+        integer, intent(in) :: i
+        type(instruccion) :: instr
+        integer :: j
+        character(len=120) :: aux_string
+        ! -----
+
+        aux_string = ' ' ! esta para mantener compatibilidad con main_uniaxial, en un futuro se va
+        instr = conf%instr%lista(i)
+        do j=1,instr%num_mallas
+            write(6,*) '---'
+            write(6,*) 'Procesar uniaxial'
+            write(6,*) 'Malla: ', trim(instr%lista_nomarchs_mallas(j)%s)
+            call main_uniaxial(instr%lista_nomarchs_mallas(j)%s, &
+                               conf%num_parcon, &
+                               conf%parcon, &
+                               instr%num_pasos_vibrac, &
+                               instr%lista_niters_vibrac, &
+                               instr%lista_drmags_vibrac, &
+                               instr%fza_ref, &
+                               instr%fza_tol, &
+                               instr%dtime, &
+                               instr%dot_F11, &
+                               instr%ten22, &
+                               instr%F11_fin, &
+                               aux_string, &
+                               instr%opcion_save, &
+                               instr%num_F11_saves, &
+                               instr%lista_F11_tosave)
+            write(6,*) '---'
+        end do
+
+        ! -----
+    end subroutine procesar_uniaxial
     ! ----------
 
     ! ==========

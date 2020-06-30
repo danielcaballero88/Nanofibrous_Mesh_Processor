@@ -8,3 +8,10 @@
 core
 # carpeta temp 
 /temp/
+
+
+# archivos de imagenes 
+*.png 
+
+# archivos de mallas deformadas
+tests/*/malla_i_s_*

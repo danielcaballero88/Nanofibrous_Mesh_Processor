@@ -2,7 +2,8 @@ module programs
 
 use Aux
 USE class_malla_completa, ONLY : MallaCom
-use class_mallita, only : MallaSim
+use class_mallita
+use class_instruccion, only: instruccion
 
 contains
 
@@ -52,7 +53,7 @@ end subroutine main_intersectar
 ! ==========================================================================
 subroutine main_simplificar(filename_malla_in, nparamcon, paramcon)
     use class_malla_completa
-    use class_mallita
+!    use class_mallita
     implicit none
     CHARACTER(LEN=120), intent(in) :: filename_malla_in ! nombre original de la malla (as deposited)
     integer, intent(in) :: nparamcon
@@ -86,7 +87,7 @@ subroutine main_equilibrar  (filename_malla_in, &
                             str_num_output_opt)
     ! Calcula el equilibrio elastico de una malla dado un tensor F macroscopico (Fmacro)
     ! ----------
-    use class_mallita
+!    use class_mallita
     implicit none
     ! ----------
     CHARACTER(LEN=120), intent(in) :: filename_malla_in
@@ -139,7 +140,7 @@ subroutine main_traccion(filename_malla_in, &
     ! Simula un ensayo de traccion con un esquema explicito
     ! imponiendo tasas de deformacion axial y transversal
     ! ----------
-    use class_mallita
+!    use class_mallita
     implicit none
     ! ----------
     CHARACTER(LEN=120), intent(in) :: filename_malla_in
@@ -252,13 +253,13 @@ end subroutine main_traccion
 subroutine main_uniaxial(filename_malla_in, &
                         nparcon, parcon, &
                         num_pasos, lista_veces, lista_drmags, fzaref, fzatol, &
-                        dtime, dotF11, T22, F11fin, &
+                        dtime, dotF11, dotF22, T22, F11fin, &
                         filename_curva, &
                         opcion_save, nsaves, lista_saves_F)
     ! Simula un ensayo de traccion con un esquema explicito
     ! imponiendo tasas de deformacion axial y transversal
     ! ----------
-    use class_mallita
+    ! use class_mallita
     implicit none
     ! ----------
     CHARACTER(LEN=120), intent(in) :: filename_malla_in
@@ -271,6 +272,7 @@ subroutine main_uniaxial(filename_malla_in, &
     real(8), intent(in) :: fzatol
     real(8), intent(in) :: dtime
     real(8), intent(in) :: dotF11
+    real(8), intent(in) :: dotF22
     real(8), intent(in) :: T22 ! tension contra la cual contraer (en uniaxial verdadero seria cero)
     real(8), intent(in) :: F11fin
     CHARACTER(LEN=120), intent(in) :: filename_curva
@@ -289,7 +291,7 @@ subroutine main_uniaxial(filename_malla_in, &
     integer :: isave
     ! ----------
     integer :: k, maxk=100
-    real(8) :: dF22 = 0.01d0
+    real(8) :: dF22 = 0.0001d0
     ! ----------
 
     write(*,*) "Empezando Uniaxial"
@@ -340,7 +342,8 @@ subroutine main_uniaxial(filename_malla_in, &
         do k=1,maxk
             call calcular_equilibrio(ms, num_pasos, lista_veces, lista_drmags, fzaref, fzatol, Fmacro)
             if (ms%Tmacro(2,2)>T22) then
-                Fmacro(2,2) = Fmacro(2,2) - dF22
+                Fmacro(2,2) = Fmacro(2,2) + dotF22*dtime
+                write(*,"(1A10, 4E20.8E4)") repeat(' ',10), Fmacro(1,1), ms%Tmacro(1,1), Fmacro(2,2), ms%Tmacro(2,2)
 !            else if (ms%Tmacro(2,2) < T22) then
 !                Fmacro(2,2) = Fmacro(2,2) + dF22
 !                exit

@@ -220,6 +220,7 @@ contains
                                instr%fza_tol, &
                                instr%dtime, &
                                instr%dot_F11, &
+                               instr%dot_F22, &
                                instr%ten22, &
                                instr%F11_fin, &
                                aux_string, &

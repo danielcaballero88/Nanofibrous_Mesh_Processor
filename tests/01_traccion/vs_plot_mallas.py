@@ -14,7 +14,7 @@ def main():
     mc_i = vs.Mallacom.leer_de_archivo(archivo)
     # Leer malla intersectada y simplificada
     archivo = Path(__file__).parent / 'malla_i_s.txt'
-    mc_i_s = vs.Mallasim.leer_desde_archivo(archivo)        
+    mc_i_s = vs.Mallasim.leer_de_archivo(archivo)        
 
     # Graficar malla inicial
     fig, ax = plt.subplots(figsize=(8,6))

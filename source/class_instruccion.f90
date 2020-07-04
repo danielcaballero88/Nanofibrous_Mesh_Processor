@@ -262,34 +262,34 @@ contains
     ! ----------
 
     ! ----------
-    function read_from_configfile_uniaxial(self, arch) result(istat)
+    function read_from_configfile_uniaxial(this, arch) result(istat)
         ! -----
         ! leer los parametros propios del metodo uniaxial
         ! ya se leyo el tipo de instruccion, restan los demas parametros
         ! -----
         implicit none
         ! -----
-        class(instruccion), intent(inout) :: self
+        class(instruccion), intent(inout) :: this
         type(archivo), intent(in) :: arch
         integer :: istat
         ! -----
 
         ! leo las mallas a procesar
-        read(arch%fid, *) self%opcion_mallas, self%nomarch_mallas
-        call get_lista_mallas(self)
+        read(arch%fid, *) this%opcion_mallas, this%nomarch_mallas
+        call get_lista_mallas(this)
         ! leo parametros de solver
-        read(arch%fid, *) self%num_pasos_vibrac
-        if (self%num_pasos_vibrac > 0) then ! si es =0 entonces no hay pasos de equilibrio, se calcula el afin y nada mas
-            allocate( self%lista_niters_vibrac(self%num_pasos_vibrac) )
-            allocate( self%lista_drmags_vibrac(self%num_pasos_vibrac) )
+        read(arch%fid, *) this%num_pasos_vibrac
+        if (this%num_pasos_vibrac > 0) then ! si es =0 entonces no hay pasos de equilibrio, se calcula el afin y nada mas
+            allocate( this%lista_niters_vibrac(this%num_pasos_vibrac) )
+            allocate( this%lista_drmags_vibrac(this%num_pasos_vibrac) )
         end if
-        read(arch%fid, *) self%lista_niters_vibrac
-        read(arch%fid, *) self%lista_drmags_vibrac
-        read(arch%fid, *) self%fza_ref, self%fza_tol
+        read(arch%fid, *) this%lista_niters_vibrac
+        read(arch%fid, *) this%lista_drmags_vibrac
+        read(arch%fid, *) this%fza_ref, this%fza_tol
         ! leo parametros temporales de la traccion
-        read(arch%fid, *) self%dtime, self%dot_F11, self%ten22, self%F11_fin
-        read(arch%fid, *) self%opcion_save, self%dF11_save
-        call assemble_saves(self)
+        read(arch%fid, *) this%dtime, this%dot_F11, this%dot_F22, this%ten22, this%F11_fin
+        read(arch%fid, *) this%opcion_save, this%dF11_save
+        call assemble_saves(this)
         !
         istat = 0 ! todo ok
 

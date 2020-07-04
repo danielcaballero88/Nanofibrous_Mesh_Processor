@@ -11,15 +11,21 @@ def main():
     archname = f'malla_c.txt'
     archivo = Path(__file__).parent / archname
     with open(archivo, 'r') as fid:
-        lams = []
-        tens = []
+        e11 = []
+        e22 = []
+        t11 = []
+        t22 = []
         for line in fid:
             vals = [float(val) for val in line.split()]
-            lams.append(vals[0])
-            tens.append(vals[4])
+            e11.append(vals[0] - 1.)
+            e22.append(vals[3] - 1.)
+            t11.append(vals[4])
+            t22.append(vals[7])
     # Graficar
     plt.figure() 
-    plt.plot(lams, tens)
+    plt.plot(e11, t11, e11, t22)
+    plt.figure()
+    plt.plot(e11, e22)
     plt.show()
 
 if __name__ == '__main__':

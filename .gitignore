@@ -10,8 +10,9 @@ core
 /temp/
 
 
-# archivos de imagenes 
-*.png 
-
-# archivos de mallas deformadas
-tests/*/malla_i_s_*
+# archivos de sobra en tests
+tests/*/*.png
+tests/*/*_i_s_trac_*.txt
+tests/*/*_i_s_uaxi_*.txt
+tests/*/*_c.txt
+tests/*/Nanofibrous_Mesh_Processor
